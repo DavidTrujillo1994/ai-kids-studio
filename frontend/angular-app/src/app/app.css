@@ -1,0 +1,9 @@
+header {
+  position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center;
+  padding: 10px 20px; background: #fffdf8; border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 700 1.15rem 'Andika', sans-serif; }
+nav { display: flex; gap: 4px; }
+nav a { padding: 8px 14px; border-radius: 10px; color: var(--soft); font-weight: 600; text-decoration: none; }
+nav a:hover { background: var(--page); color: var(--ink); }
+nav a.on { background: var(--leaf-soft); color: var(--leaf-dark); }

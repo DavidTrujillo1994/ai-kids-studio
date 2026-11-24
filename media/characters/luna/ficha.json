@@ -1,0 +1,24 @@
+{
+  "id": "luna",
+  "name": "Luna",
+  "role": "protagonista",
+  "personality": "Inteligente, alegre y creativa",
+  "designVersion": 1,
+  "designStatus": "borrador",
+  "license": "propia",
+  "colorPalette": [
+    "#f08a3c",
+    "#c4601d",
+    "#fff6e6",
+    "#8e5bd0"
+  ],
+  "voice": {
+    "engine": "chatterbox",
+    "reference": "voz-referencia.wav",
+    "exaggeration": 0.8,
+    "cfg": 0.4,
+    "seed": 11,
+    "pitch": 1.1,
+    "license": "MIT (Chatterbox) + referencia sintetica Kokoro (Apache-2.0)"
+  }
+}

@@ -1,0 +1,35 @@
+{
+ "id": "bosque-central",
+ "version": 1,
+ "license": "propia",
+ "originX": -300,
+ "groundY": 622,
+ "layers": [
+  [
+   "1-cielo.svg",
+   0.05
+  ],
+  [
+   "2-colinas.svg",
+   0.2
+  ],
+  [
+   "3-arboles-lejos.svg",
+   0.45
+  ],
+  [
+   "4-arboles-cerca.svg",
+   0.75
+  ],
+  [
+   "5-suelo.svg",
+   1.0
+  ]
+ ],
+ "foreground": [
+  [
+   "6-frente.svg",
+   1.35
+  ]
+ ]
+}

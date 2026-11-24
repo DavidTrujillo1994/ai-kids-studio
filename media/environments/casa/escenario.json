@@ -1,0 +1,23 @@
+{
+ "id": "casa",
+ "version": 1,
+ "license": "propia",
+ "interior": true,
+ "originX": -300,
+ "layers": [
+  [
+   "1.svg",
+   0.9
+  ],
+  [
+   "2.svg",
+   1.0
+  ],
+  [
+   "3.svg",
+   1.0
+  ]
+ ],
+ "foreground": [],
+ "groundY": 622
+}

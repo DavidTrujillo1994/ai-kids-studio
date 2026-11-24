@@ -1,0 +1,47 @@
+<div class="stack">
+  <div class="card stack">
+    <div class="spread">
+      <h2>¿Quién sale?</h2>
+      <span class="chip">Dura unos {{ seconds() }} s</span>
+    </div>
+    @for (c of store.characters(); track c.id) {
+      <div class="row">
+        <button class="btn" type="button" [class.primary]="inCast(c.assetKey)" [attr.aria-pressed]="inCast(c.assetKey)" [disabled]="readonly()" (click)="toggleCast(c.assetKey)">{{ inCast(c.assetKey) ? '✓ ' : '＋ ' }}{{ c.name }}</button>
+        @for (m of script().cast; track m.character) {
+          @if (m.character === c.assetKey) {
+            <label class="row start">Empieza en
+              <select [disabled]="readonly()" [value]="m.startX" (change)="setStart(c.assetKey, $any($event.target).value)">
+                @if (!isPlace(m.startX)) { <option [value]="m.startX" selected>{{ placeLabel(m.startX) }} (ajustado)</option> }
+                @for (p of places; track p.x) { <option [value]="p.x" [selected]="p.x === m.startX">{{ p.label }}</option> }
+              </select>
+            </label>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  @if (general().length) {
+    <div class="notice bad" role="alert">@for (p of general(); track p.message) { <p>{{ p.message }}</p> }</div>
+  }
+
+  <ol class="steps">
+    @for (s of script().steps; track $index; let i = $index; let first = $first, last = $last) {
+      <li>
+        <app-step-card [step]="s" [number]="i + 1" [problems]="problemsOf(i)" [cast]="script().cast" [readonly]="readonly()" [first]="first" [last]="last" [focus]="focused() === i"
+          (changed)="replace(i, $event)" (moved)="move(i, $event)" (duplicated)="duplicate(i)" (removed)="remove(i)" />
+      </li>
+    }
+  </ol>
+
+  @if (!readonly()) {
+    <div class="card stack">
+      <h2>Agregar un paso</h2>
+      <div class="add">
+        @for (t of availableTypes(); track t) {
+          <button type="button" (click)="add(t)"><span class="ic" aria-hidden="true">{{ stepInfo[t].icon }}</span><b>{{ stepInfo[t].label }}</b><small>{{ stepInfo[t].help }}</small></button>
+        }
+      </div>
+    </div>
+  }
+</div>

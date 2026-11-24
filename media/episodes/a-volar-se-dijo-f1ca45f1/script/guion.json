@@ -1,0 +1,28 @@
+{
+  "characters" : [ {
+    "id" : "bruno",
+    "x" : -170
+  } ],
+  "steps" : [ {
+    "do" : "walk",
+    "character" : "bruno",
+    "to" : 520,
+    "expression" : "happy"
+  }, {
+    "do" : "say",
+    "character" : "bruno",
+    "text" : "¡Hola, amigos! Soy Bruno. y voy a volar!",
+    "animation" : "wave",
+    "expression" : "happy"
+  }, {
+    "do" : "walk",
+    "character" : "bruno",
+    "to" : 1500,
+    "expression" : "normal"
+  } ],
+  "id" : "a-volar-se-dijo-f1ca45f1",
+  "title" : "A volar se dijo!",
+  "environment" : "bosque-central",
+  "fps" : 24,
+  "resolution" : [ 1280, 720 ]
+}

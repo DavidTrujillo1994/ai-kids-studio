@@ -1,0 +1,103 @@
+<article class="card" [class.wrong]="problems().length > 0">
+  <header class="spread">
+    <div class="row"><span class="num">{{ number() }}</span><span class="ic" aria-hidden="true">{{ info().icon }}</span><h3>{{ info().label }}</h3>
+      @if (step().character && cast().length > 1) {
+        <select class="who" aria-label="Personaje" [disabled]="readonly()" [ngModel]="step().character" (ngModelChange)="set({ character: $event })">
+          @for (c of cast(); track c.character) { <option [value]="c.character">{{ store.characterName(c.character) }}</option> }
+        </select>
+      } @else if (step().character) {
+        <span class="chip">{{ store.characterName(step().character) }}</span>
+      }
+    </div>
+    @if (!readonly()) {
+      <div class="row tools">
+        <button class="btn icon" type="button" [disabled]="first()" (click)="moved.emit(-1)" title="Subir" aria-label="Subir paso">↑</button>
+        <button class="btn icon" type="button" [disabled]="last()" (click)="moved.emit(1)" title="Bajar" aria-label="Bajar paso">↓</button>
+        <button class="btn icon" type="button" (click)="duplicated.emit()" title="Duplicar" aria-label="Duplicar paso">⧉</button>
+        <button class="btn icon" type="button" (click)="removed.emit()" title="Quitar" aria-label="Quitar paso">✕</button>
+      </div>
+    }
+  </header>
+
+  <div class="stack fields">
+    @switch (step().type) {
+      @case ('SAY') {
+        <div>
+          <textarea #text rows="2" [attr.maxlength]="maxText" placeholder="Escribe lo que dice…" aria-label="Lo que dice" [disabled]="readonly()" [ngModel]="step().text" (ngModelChange)="set({ text: $event })"></textarea>
+          @if (left() < 40) { <p class="small muted">Quedan {{ left() }} letras</p> }
+        </div>
+      }
+      @case ('WALK') {
+        <label class="field">Va hasta: {{ placeLabel(step().to ?? 0) }}
+          <input type="range" min="-170" max="1500" step="10" [disabled]="readonly()" [ngModel]="step().to" (ngModelChange)="set({ to: +$event })">
+          <span class="spread hint"><span>Sale por la izquierda</span><span>Centro</span><span>Sale por la derecha</span></span>
+        </label>
+      }
+      @case ('SCENE') {
+        <app-place-picker [environment]="step().environment ?? ''" [ambience]="step().ambience ?? 'dia'" [readonly]="readonly()" (environmentChange)="set({ environment: $event })" (ambienceChange)="set({ ambience: $event })" />
+        <div class="row">
+          @for (c of cast(); track c.character) {
+            <label class="row start"><b>{{ store.characterName(c.character) }}</b> empieza en
+              <select [disabled]="readonly()" [value]="startOf(c.character)" (change)="setStart(c.character, $any($event.target).value)">
+                @if (startOf(c.character) === null) { <option selected>Fuera de la escena</option> }
+                @else if (!isPlace(startOf(c.character))) { <option [value]="startOf(c.character)" selected>{{ placeLabel(startOf(c.character) ?? 0) }} (ajustado)</option> }
+                @for (p of places; track p.x) { <option [value]="p.x" [selected]="p.x === startOf(c.character)">{{ p.label }}</option> }
+              </select>
+            </label>
+          }
+        </div>
+      }
+      @case ('PAUSE') {
+        <label class="field">Espera {{ step().seconds }} segundos
+          <input type="range" min="0.5" max="10" step="0.5" [disabled]="readonly()" [ngModel]="step().seconds" (ngModelChange)="set({ seconds: +$event })">
+        </label>
+      }
+      @case ('APPEAR') {
+        <div class="two">
+          <label class="field">Objeto
+            <select [disabled]="readonly()" [ngModel]="step().prop" (ngModelChange)="set({ prop: $event })">
+              @for (p of store.catalog().props; track p) { <option [value]="p">{{ propLabel(p) }}</option> }
+            </select>
+          </label>
+          <label class="field">Movimiento
+            <select [disabled]="readonly()" [ngModel]="flight()" (ngModelChange)="setFlight(+$event)">
+              @if (flight() < 0) { <option [ngValue]="-1">Recorrido propio</option> }
+              @for (f of flights; track f.label; let i = $index) { <option [ngValue]="i">{{ f.label }}</option> }
+            </select>
+          </label>
+        </div>
+        <p class="small muted">Aparece mientras siguen los próximos pasos.</p>
+      }
+    }
+
+    @if (step().type !== 'APPEAR' && step().type !== 'SCENE') {
+      <div class="two">
+        @if (step().type === 'WALK') {
+          <label class="field">¿Cómo va?
+            <select [disabled]="readonly()" [ngModel]="step().gait" (ngModelChange)="set({ gait: $event })">
+              @for (g of gaits(); track g) { <option [value]="g">{{ animationLabel(g) }}</option> }
+            </select>
+          </label>
+        } @else {
+          <label class="field">{{ step().type === 'SAY' ? 'Mientras habla' : 'Movimiento' }}
+            <select [disabled]="readonly()" [ngModel]="step().animation" (ngModelChange)="set({ animation: $event })">
+              @for (a of animations(); track a) { <option [value]="a">{{ animationLabel(a) }}</option> }
+            </select>
+          </label>
+        }
+        <div class="field" role="group" aria-label="Cara">
+          <span class="lbl">Cara</span>
+          <div class="faces">
+            @for (x of expressions(); track x) {
+              <button type="button" [disabled]="readonly()" [attr.aria-pressed]="step().expression === x" (click)="set({ expression: x })"><span aria-hidden="true">{{ expressionLabel(x).icon }}</span> {{ expressionLabel(x).label }}</button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (problems().length) {
+    <ul class="problems" role="alert">@for (p of problems(); track p) { <li>{{ p }}</li> }</ul>
+  }
+</article>

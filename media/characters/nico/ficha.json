@@ -1,0 +1,24 @@
+{
+  "id": "nico",
+  "name": "Nico",
+  "role": "secundario",
+  "personality": "Travieso, inventor y despistado",
+  "designVersion": 1,
+  "designStatus": "borrador",
+  "license": "propia",
+  "colorPalette": [
+    "#8a8f98",
+    "#62676f",
+    "#f3f1ec",
+    "#3fae6a"
+  ],
+  "voice": {
+    "engine": "chatterbox",
+    "reference": "voz-referencia.wav",
+    "exaggeration": 0.9,
+    "cfg": 0.4,
+    "seed": 31,
+    "pitch": 1.04,
+    "license": "MIT (Chatterbox) + referencia sintetica Kokoro (Apache-2.0)"
+  }
+}

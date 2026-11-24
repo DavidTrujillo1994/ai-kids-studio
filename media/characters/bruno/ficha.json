@@ -1,0 +1,24 @@
+{
+  "id": "bruno",
+  "name": "Bruno",
+  "role": "protagonista",
+  "personality": "Curioso, valiente, amable y bromista",
+  "designVersion": 2,
+  "designStatus": "borrador",
+  "license": "propia",
+  "colorPalette": [
+    "#b97a42",
+    "#94592b",
+    "#fbe6c0",
+    "#2b86e0"
+  ],
+  "voice": {
+    "engine": "chatterbox",
+    "reference": "voz-referencia.wav",
+    "exaggeration": 0.9,
+    "cfg": 0.4,
+    "seed": 7,
+    "pitch": 1.12,
+    "license": "MIT (Chatterbox) + referencia sintetica Kokoro em_santa (Apache-2.0)"
+  }
+}

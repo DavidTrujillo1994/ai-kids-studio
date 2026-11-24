@@ -1,0 +1,36 @@
+{
+ "id": "lago",
+ "version": 1,
+ "license": "propia",
+ "interior": false,
+ "originX": -300,
+ "layers": [
+  [
+   "1.svg",
+   0.05
+  ],
+  [
+   "2.svg",
+   0.2
+  ],
+  [
+   "3.svg",
+   0.5
+  ],
+  [
+   "4.svg",
+   0.8
+  ],
+  [
+   "5.svg",
+   1.0
+  ]
+ ],
+ "foreground": [
+  [
+   "frente-1.svg",
+   1.25
+  ]
+ ],
+ "groundY": 622
+}

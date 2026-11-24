@@ -1,0 +1,22 @@
+{
+ "id": "bruno",
+ "name": "Bruno",
+ "role": "protagonista",
+ "personality": "Curioso, valiente y amable",
+ "designVersion": 1,
+ "designStatus": "borrador",
+ "license": "propia",
+ "colorPalette": [
+  "#a8744a",
+  "#6b4327",
+  "#ecd3ab",
+  "#2f7fd1"
+ ],
+ "voice": {
+  "model": "es_ES-davefx-medium",
+  "speaker": null,
+  "pitch": 1.26,
+  "lengthScale": 1.08,
+  "license": "CC0"
+ }
+}

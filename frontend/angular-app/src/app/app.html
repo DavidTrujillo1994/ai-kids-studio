@@ -1,0 +1,24 @@
+<header>
+  <a class="brand" routerLink="/"><img src="icono.svg" alt="" width="36" height="36"><span>AI Kids Studio</span></a>
+  <nav aria-label="Principal">
+    <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Episodios</a>
+    <a routerLink="/personajes" routerLinkActive="on">Personajes</a>
+    <a routerLink="/ajustes" routerLinkActive="on">Ajustes</a>
+  </nav>
+</header>
+
+@if (store.failed()) {
+  <main class="page">
+    <div class="notice bad spread">
+      <span>No pude conectar con la aplicación. Revisa que la ventana negra de «Iniciar» siga abierta.</span>
+      <button class="btn" type="button" (click)="store.load()">Reintentar</button>
+    </div>
+  </main>
+} @else if (store.ready()) {
+  <main><router-outlet /></main>
+} @else {
+  <main class="page muted">Cargando…</main>
+}
+
+<app-confirm-dialog />
+<app-toasts />

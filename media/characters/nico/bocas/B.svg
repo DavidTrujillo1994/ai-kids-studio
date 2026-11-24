@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="108" viewBox="0 0 140 108">
+<defs><clipPath id="m"><path d="M36 34 Q70 42 104 34 Q100 60 70 60 Q40 60 36 34Z"/></clipPath></defs>
+<path d="M36 34 Q70 42 104 34 Q100 60 70 60 Q40 60 36 34Z" fill="#6b1726"/><g clip-path="url(#m)"><path d="M20 46 Q70 55 120 46 L120 16 L20 16Z" fill="#ffffff"/></g><path d="M36 34 Q70 42 104 34 Q100 60 70 60 Q40 60 36 34Z" fill="none" stroke="#2f3238" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

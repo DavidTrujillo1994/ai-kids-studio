@@ -1,0 +1,8 @@
+.bar { height: 14px; border-radius: 9px; background: #e9e1d2; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--leaf); transition: width .5s; }
+.stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.stages li { display: grid; padding: 12px 14px; border-radius: 12px; background: #f5efe3; color: var(--soft); }
+.stages .now { background: var(--sky-soft); color: #18579a; }
+.stages .done { background: var(--leaf-soft); color: var(--leaf-dark); }
+.stages .done b::before { content: '✓ '; }
+pre { max-height: 240px; overflow: auto; padding: 12px; border-radius: 10px; background: #2c2118; color: #f3eadb; font-size: .82rem; white-space: pre-wrap; }

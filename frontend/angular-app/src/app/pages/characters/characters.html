@@ -1,0 +1,37 @@
+<div class="page stack">
+  <h1>Personajes</h1>
+  <div class="grid">
+    @for (c of store.characters(); track c.id) {
+      <article class="card who">
+        <img [src]="portraitUrl(c.assetKey)" [alt]="'Retrato de ' + c.name" width="160" height="160">
+        @if (editing(); as e) {
+          @if (e.id === c.id) {
+            <div class="stack">
+              <label class="field">Nombre <input type="text" maxlength="40" [ngModel]="e.name" (ngModelChange)="patch({ name: $event })"></label>
+              <label class="field">Personalidad <textarea rows="2" maxlength="300" [ngModel]="e.personality" (ngModelChange)="patch({ personality: $event })"></textarea></label>
+              <div class="row"><button class="btn primary" type="button" [disabled]="!e.name.trim()" (click)="save()">Guardar</button><button class="btn" type="button" (click)="editing.set(null)">Cancelar</button></div>
+            </div>
+          }
+        }
+        @if (editing()?.id !== c.id) {
+          <div class="stack info">
+            <div class="row"><h2>{{ c.name }}</h2>
+              <span class="chip" [class.ok]="c.designStatus === 'APROBADO'" [class.warn]="c.designStatus === 'BORRADOR'">{{ c.designStatus === 'APROBADO' ? 'Diseño aprobado' : 'Diseño por aprobar' }}</span></div>
+            <p>{{ c.personality }}</p>
+            <p class="small muted">Dibujo versión {{ c.designVersion }} · Caras:
+              @for (x of store.expressionsOf(c.assetKey); track x) { <span [title]="expressionLabel(x).label">{{ expressionLabel(x).icon }}</span> }</p>
+            @if (c.designStatus === 'BORRADOR') {
+              <div class="row"><button class="btn primary" type="button" (click)="approve(c)">Aprobar diseño</button><button class="btn" type="button" (click)="edit(c)">Editar ficha</button></div>
+            }
+          </div>
+        }
+      </article>
+    }
+  </div>
+  @if (available().length) {
+    <div class="card stack">
+      <h2>Dibujos que aún no están en la serie</h2>
+      <div class="row">@for (a of available(); track a.key) { <button class="btn" type="button" (click)="add(a.key)">＋ Agregar a {{ a.name }}</button> }</div>
+    </div>
+  }
+</div>

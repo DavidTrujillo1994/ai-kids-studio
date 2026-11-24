@@ -1,0 +1,33 @@
+{
+ "_ayuda": "Reglas para sugerir movimientos. 'words' son comienzos de palabra o frases sin tildes; gana la primera regla que coincide. 'gait' es como se desplaza el personaje en su proximo paso Camina.",
+ "rules": [
+  {"words": ["ja ja", "jaja", "jeje", "cosquill", "chiste", "que risa", "gracios"], "animations": ["laugh"], "expression": "happy"},
+  {"words": ["volar", "volem", "volando", "vuelo", "vuela", "alas"], "animations": ["celebrate", "point"], "expression": "happy", "gait": "fly"},
+  {"words": ["miedo", "susto", "asust", "trueno", "monstruo", "fantasma", "tormenta", "auxilio", "socorro"], "animations": ["scared"], "expression": "scared"},
+  {"words": ["silencio", "shh", "despacito", "sin hacer ruido", "escond", "puntillas"], "animations": ["shy", "look"], "expression": "picaro", "gait": "sneak"},
+  {"words": ["correr", "corre ", "corre!", "corran", "corram", "corriendo", "carrera", "rapido", "deprisa", "alcanz", "atrap", "apurate"], "animations": ["point", "celebrate"], "expression": "happy", "gait": "run"},
+  {"words": ["salt", "brinc", "conejit", "ranit"], "animations": ["jump"], "expression": "happy", "gait": "hop"},
+  {"words": ["triste", "perdi", "extran", "llor", "lo siento", "perdon", "que pena", "se rompio", "me siento solo", "me siento sola"], "animations": ["sad"], "expression": "sad"},
+  {"words": ["enoj", "no es justo", "basta", "molest", "grr", "furios"], "animations": ["angry"], "expression": "angry"},
+  {"words": ["sueno", "dorm", "cansad", "bostez", "buenas noches", "a la cama"], "animations": ["yawn"], "expression": "sleepy", "gait": "sneak"},
+  {"words": ["feliz", "cumple", "fiesta", "ganamos", "gane", "lo logr", "viva", "yupi", "hurra", "sorpresa", "que emocion"], "animations": ["celebrate", "jump"], "expression": "happy"},
+  {"words": ["bravo", "felicit", "aplaus", "muy bien", "excelente"], "animations": ["clap"], "expression": "happy"},
+  {"words": ["bail", "musica", "cantar", "cantem", "cancion", "ritmo"], "animations": ["dance"], "expression": "happy"},
+  {"words": ["hambre", "comer", "comida", "galleta", "pastel", "torta", "delicios", "rico", "rica", "manzana", "miel"], "animations": ["eat"], "expression": "happy"},
+  {"words": ["pelota", "patea", "gol", "patada"], "animations": ["kick"], "expression": "happy"},
+  {"words": ["gracias", "te quiero", "abraz", "los quiero"], "animations": ["hug"], "expression": "happy"},
+  {"words": ["hola", "buenos dias", "buenas tardes", "bienvenid", "adios", "chao", "hasta luego", "hasta pronto", "nos vemos"], "animations": ["wave"], "expression": "happy"},
+  {"words": ["mira", "miren", "alla", "ahi esta", "aqui esta", "por aqui", "por alla"], "animations": ["point"], "expression": "surprised"},
+  {"words": ["increible", "wow", "guau", "no puede ser", "que es eso"], "animations": ["surprise"], "expression": "surprised"},
+  {"words": ["donde esta", "busc", "encontr", "explor", "investig", "huella"], "animations": ["look"], "expression": "normal"},
+  {"words": ["no lo se", "yo no se", "quien sabe", "ni idea", "tal vez", "quiza"], "animations": ["shrug"], "expression": "normal"},
+  {"words": ["pens", "pienso", "idea", "hmm", "a ver", "como har", "un plan", "mi plan"], "animations": ["think"], "expression": "normal"},
+  {"words": ["verguenza", "timid"], "animations": ["shy"], "expression": "happy"},
+  {"words": ["sentar", "sentem", "sientat", "descans"], "animations": ["sit"], "expression": "happy"},
+  {"words": ["recog", "levant"], "animations": ["pickup"], "expression": "normal"}
+ ],
+ "question": ["think", "shrug", "look"],
+ "exclamation": ["talk", "point", "celebrate"],
+ "neutral": ["talk", "shrug", "point"],
+ "environmentGaits": {"cielo": "fly"}
+}

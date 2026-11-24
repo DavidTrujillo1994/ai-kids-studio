@@ -1,0 +1,20 @@
+{
+ "dia": {
+  "tint": "#ffffff"
+ },
+ "atardecer": {
+  "tint": "#ffc59a"
+ },
+ "noche": {
+  "tint": "#6f7fc4",
+  "particles": "stars"
+ },
+ "lluvia": {
+  "tint": "#a9bccb",
+  "particles": "rain"
+ },
+ "nieve": {
+  "tint": "#dbe8f7",
+  "particles": "snow"
+ }
+}

@@ -1,0 +1,49 @@
+<div class="page stack">
+  <section class="hero">
+    <div class="stack">
+      <h1>{{ store.series()?.name }}</h1>
+      <p class="muted">{{ store.series()?.description }}</p>
+      @if (pending() > 0) {
+        <p><span class="chip warn">{{ pending() === 1 ? 'Tienes 1 episodio por aprobar' : 'Tienes ' + pending() + ' episodios por aprobar' }}</span></p>
+      }
+      <div><a class="btn primary big" routerLink="/nuevo">Crear episodio</a></div>
+    </div>
+  </section>
+
+  @if (episodes(); as list) {
+    @if (list.length === 0) {
+      <div class="card empty">
+        <h2>Todavía no hay episodios</h2>
+        <p class="muted">Crea el primero: te damos un guion de ejemplo para que solo tengas que cambiarlo.</p>
+      </div>
+    } @else {
+      <div class="grid">
+        @for (e of list; track e.id) {
+          <article class="card tile">
+            <a class="cover" [routerLink]="['/episodios', e.id]" [attr.aria-label]="'Abrir ' + e.title">
+              @if (e.hasVideo) {
+                <img [src]="api.thumbnailUrl(e)" alt="" loading="lazy">
+              } @else {
+                <span class="blank">Sin video todavía</span>
+              }
+            </a>
+            <div class="body">
+              <h3><a [routerLink]="['/episodios', e.id]">{{ e.title }}</a></h3>
+              @if (jobOf(e); as job) {
+                <div class="bar" role="progressbar" [attr.aria-valuenow]="job.progress" aria-valuemin="0" aria-valuemax="100" aria-label="Avance del video"><i [style.width.%]="job.progress"></i></div>
+                <p class="small muted">{{ job.message }}</p>
+              }
+              <div class="spread">
+                <app-status-chip [status]="e.status" />
+                <button class="btn icon" type="button" [disabled]="e.status === 'IN_PRODUCTION'" (click)="remove(e)" [attr.aria-label]="'Quitar ' + e.title" title="Quitar">🗑️</button>
+              </div>
+              <p class="small muted">{{ e.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <p class="muted">Cargando episodios…</p>
+  }
+</div>

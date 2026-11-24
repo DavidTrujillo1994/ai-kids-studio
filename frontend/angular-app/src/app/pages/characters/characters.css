@@ -1,0 +1,5 @@
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr)); }
+.who { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.who img { border-radius: 14px; background: var(--leaf-soft); object-fit: cover; }
+.who .stack { flex: 1 1 220px; }
+.info { gap: 10px; }

@@ -1,0 +1,48 @@
+<div class="stack">
+  <div class="card player">
+    <video controls preload="metadata" [src]="videoUrl()" [poster]="posterUrl()"></video>
+  </div>
+
+  @if (pending()) {
+    <div class="card stack">
+      @if (!rejecting()) {
+        <h2>¿Te gustó?</h2>
+        <div class="row">
+          <button class="btn primary big" type="button" data-test="approve" [disabled]="busy()" (click)="approve.emit()">Aprobar</button>
+          <button class="btn big" type="button" data-test="reject" [disabled]="busy()" (click)="rejecting.set(true)">Pedir cambios</button>
+          <a class="btn big" [href]="downloadUrl()">Descargar</a>
+        </div>
+      } @else {
+        <label class="field">¿Qué se debe mejorar?
+          <textarea rows="3" maxlength="1000" placeholder="Ej.: la primera frase va muy rápido" [ngModel]="comments()" (ngModelChange)="comments.set($event)"></textarea>
+        </label>
+        <div class="row">
+          <button class="btn primary" type="button" data-test="send" [disabled]="busy() || !comments().trim()" (click)="send()">Enviar y corregir el guion</button>
+          <button class="btn" type="button" (click)="rejecting.set(false)">Volver</button>
+        </div>
+      }
+    </div>
+  } @else if (approved()) {
+    <div class="card stack">
+      <div class="notice ok"><b>Episodio aprobado.</b> Ya puedes descargarlo o guardar una copia completa.</div>
+      <div class="row">
+        <a class="btn primary big" [href]="downloadUrl()">Descargar video</a>
+        <button class="btn big" type="button" data-test="export" (click)="export.emit()">Exportar con subtítulos</button>
+      </div>
+    </div>
+  } @else {
+    <div class="notice">Este es el video anterior. Crea el video otra vez para revisarlo con los cambios del guion.</div>
+  }
+
+  @if (history().length) {
+    <div class="card stack">
+      <h2>Historial</h2>
+      <ul class="history">
+        @for (r of history(); track r.at) {
+          <li><span class="chip" [class.ok]="r.decision === 'APPROVE'" [class.bad]="r.decision === 'REJECT'">{{ r.decision === 'APPROVE' ? 'Aprobado' : 'Cambios' }}</span>
+            <span class="small muted">{{ r.at | date: 'dd/MM/yyyy HH:mm' }}</span> <span>{{ r.comments }}</span></li>
+        }
+      </ul>
+    </div>
+  }
+</div>

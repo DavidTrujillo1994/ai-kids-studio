@@ -1,0 +1,85 @@
+<div class="page stack">
+  @if (notFound()) {
+    <div class="card stack"><h2>No encontré ese episodio</h2><div><a class="btn" routerLink="/">Volver a los episodios</a></div></div>
+  } @else if (episode(); as e) {
+    @if (draft(); as d) {
+      <div class="stack tight">
+        <a class="back" routerLink="/">← Episodios</a>
+        <div class="spread">
+          <input class="title" type="text" maxlength="80" aria-label="Título del episodio" [disabled]="!e.editable" [ngModel]="d.title" (ngModelChange)="change({ title: $event })">
+          <div class="row">
+            <app-status-chip [status]="e.status" />
+            @if (e.editable) {
+              <span class="small muted" aria-live="polite">
+                @switch (saveState()) {
+                  @case ('saved') { ✓ Guardado }
+                  @case ('error') { <span class="err">Sin guardar</span> }
+                  @default { Guardando… }
+                }
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Pasos del episodio">
+        <button role="tab" type="button" id="t1" aria-controls="panel" [attr.aria-selected]="tab() === 'guion'" (click)="tab.set('guion')"><b>1</b> Escribe el guion</button>
+        <button role="tab" type="button" id="t2" aria-controls="panel" [attr.aria-selected]="tab() === 'video'" (click)="tab.set('video')"><b>2</b> Crea el video</button>
+        <button role="tab" type="button" id="t3" aria-controls="panel" [attr.aria-selected]="tab() === 'revision'" [disabled]="!e.hasVideo" (click)="tab.set('revision')"><b>3</b> Revisa y aprueba</button>
+      </div>
+
+      <section id="panel" role="tabpanel">
+        @switch (tab()) {
+          @case ('guion') {
+            <div class="stack">
+              @if (e.status === 'REJECTED' && e.reviews.length) {
+                <div class="notice bad"><b>Lo que pediste mejorar:</b> {{ e.reviews[e.reviews.length - 1].comments }}</div>
+              }
+              <details class="card">
+                <summary>Detalles del episodio</summary>
+                <div class="stack details">
+                  <label class="field">¿De qué trata?
+                    <textarea rows="2" maxlength="1000" [disabled]="!e.editable" [ngModel]="d.idea" (ngModelChange)="change({ idea: $event })"></textarea>
+                  </label>
+                </div>
+              </details>
+              <div class="card stack">
+                <h2>¿Dónde empieza?</h2>
+                <app-place-picker [environment]="d.environment" [ambience]="d.script.ambience" [readonly]="!e.editable"
+                  (environmentChange)="change({ environment: $event })" (ambienceChange)="changeScript({ cast: d.script.cast, steps: d.script.steps, ambience: $event })" />
+              </div>
+              @if (e.editable && d.script.steps.length) {
+                <div class="card spread magic">
+                  <div><b>¿Los movimientos no encajan con lo que dicen?</b><p class="small muted">Te propongo acciones y caras según cada frase y el lugar.</p></div>
+                  <div class="row">
+                    @if (beforeSuggestion()) { <button class="btn" type="button" (click)="undoSuggestion()">Deshacer sugerencia</button> }
+                    <button class="btn" type="button" (click)="suggest()">✨ Sugerir movimientos</button>
+                  </div>
+                </div>
+              }
+              <app-script-editor [script]="d.script" [problems]="e.problems" [readonly]="!e.editable" (changed)="changeScript($event)" />
+              @if (e.editable) {
+                <div class="card spread next">
+                  @if (e.problems.length) {
+                    <span class="muted">Corrige lo marcado en rojo para continuar.</span>
+                  } @else {
+                    <span class="muted">¿El guion está listo?</span>
+                  }
+                  <button class="btn primary big" type="button" [disabled]="!canProduce()" (click)="start()">Crear video</button>
+                </div>
+              }
+            </div>
+          }
+          @case ('video') {
+            <app-production-panel [episode]="e" [running]="running()" [canStart]="canProduce()" (start)="start()" (cancel)="cancel()" (seeVideo)="tab.set('revision')" (editScript)="tab.set('guion')" />
+          }
+          @case ('revision') {
+            <app-review-panel [episode]="e" [busy]="busy()" (approve)="approve()" (reject)="reject($event)" (export)="export()" />
+          }
+        }
+      </section>
+    }
+  } @else {
+    <p class="muted">Cargando…</p>
+  }
+</div>

@@ -1,0 +1,13 @@
+.hero { padding: 34px 32px; border-radius: 22px; background: linear-gradient(120deg, #d9f0dc, #cfe9f8); }
+.hero .muted { color: #3f5546; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.tile { padding: 0; overflow: hidden; }
+.cover { display: block; aspect-ratio: 16 / 9; background: #dcead9; }
+.cover img { width: 100%; height: 100%; object-fit: cover; }
+.blank { display: grid; place-items: center; height: 100%; color: #56705a; font-weight: 600; }
+.body { display: grid; gap: 10px; padding: 16px; }
+.body h3 a { color: inherit; text-decoration: none; }
+.body h3 a:hover { text-decoration: underline; }
+.bar { height: 8px; border-radius: 9px; background: #e9e1d2; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--leaf); transition: width .4s; }
+.empty { display: grid; gap: 8px; padding: 40px; text-align: center; }

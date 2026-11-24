@@ -1,0 +1,14 @@
+.tight { gap: 4px; }
+.stories { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.stories button, .cast button { position: relative; overflow: hidden; padding: 0; border: 2px solid var(--line); border-radius: 14px; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.stories button:hover, .cast button:hover { border-color: var(--soft); }
+.stories button[aria-pressed=true], .cast button[aria-pressed=true] { border-color: var(--leaf); background: var(--leaf-soft); }
+.stories button, .cast button { display: flex; flex-direction: column; justify-content: flex-start; }
+.cast button { align-items: center; }
+.stories img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: #dcead9; }
+.text { display: grid; gap: 2px; padding: 10px 14px 14px; }
+.text small { color: var(--soft); }
+.cast { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(120px, 150px)); }
+.cast button { padding-bottom: 10px; text-align: center; }
+.cast img { width: 100%; height: auto; margin-bottom: 6px; background: var(--leaf-soft); }
+.num { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--leaf); color: #fff; font-weight: 700; }

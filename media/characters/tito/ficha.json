@@ -1,0 +1,24 @@
+{
+  "id": "tito",
+  "name": "Tito",
+  "role": "secundario",
+  "personality": "Tímido, goloso y muy rápido",
+  "designVersion": 1,
+  "designStatus": "borrador",
+  "license": "propia",
+  "colorPalette": [
+    "#d9d3cf",
+    "#aaa19c",
+    "#ffffff",
+    "#e0564a"
+  ],
+  "voice": {
+    "engine": "chatterbox",
+    "reference": "voz-referencia.wav",
+    "exaggeration": 0.85,
+    "cfg": 0.4,
+    "seed": 23,
+    "pitch": 1.14,
+    "license": "MIT (Chatterbox) + referencia sintetica Kokoro (Apache-2.0)"
+  }
+}

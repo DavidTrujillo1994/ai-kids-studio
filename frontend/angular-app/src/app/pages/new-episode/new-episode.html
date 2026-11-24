@@ -1,0 +1,52 @@
+<div class="page stack">
+  <div class="stack tight">
+    <h1>Nuevo episodio</h1>
+    <p class="muted">Elige una historia y quién la vive. Después puedes cambiarlo todo.</p>
+  </div>
+
+  <form class="stack" (ngSubmit)="create()">
+    <section class="card stack">
+      <h2>1. ¿Qué historia?</h2>
+      <div class="stories" role="group" aria-label="Historia">
+        @for (t of templates(); track t.id) {
+          <button type="button" [attr.aria-pressed]="template()?.id === t.id" (click)="choose(t)">
+            <img [src]="placeUrl(t.environment)" alt="" width="240" height="135" loading="lazy">
+            <span class="text"><b>{{ t.icon }} {{ t.name }}</b><small>{{ t.description }}</small></span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div class="spread">
+        <h2>2. ¿Quién actúa?</h2>
+        @if (template() && missing() > 0) { <span class="chip warn">{{ missing() === 1 ? 'Falta 1 personaje' : 'Faltan ' + missing() + ' personajes' }}</span> }
+      </div>
+      <div class="cast" role="group" aria-label="Personajes">
+        @for (c of store.characters(); track c.id) {
+          <button type="button" [attr.aria-pressed]="order(c.assetKey) > 0" (click)="toggle(c.assetKey)">
+            <img [src]="portraitUrl(c.assetKey)" alt="" width="120" height="120">
+            <b>{{ c.name }}</b>
+            @if (order(c.assetKey) > 0) { <span class="num">{{ order(c.assetKey) }}</span> }
+          </button>
+        }
+      </div>
+      <p class="small muted">El 1 es quien vive la historia; el 2 lo acompaña.</p>
+    </section>
+
+    <section class="card stack">
+      <h2>3. ¿Cómo se llama?</h2>
+      <label class="field">Título
+        <input type="text" name="title" maxlength="80" required placeholder="Ej.: La semilla perdida" [ngModel]="title()" (ngModelChange)="setTitle($event)">
+      </label>
+      <label class="field">Nota para ti <span class="hint">Opcional</span>
+        <textarea name="idea" rows="2" maxlength="1000" [ngModel]="idea()" (ngModelChange)="idea.set($event)"></textarea>
+      </label>
+      <div class="row">
+        <button class="btn primary big" type="submit" [disabled]="!ready()">{{ saving() ? 'Creando…' : 'Crear y ver el guion' }}</button>
+        <a class="btn" routerLink="/">Cancelar</a>
+        @if (!template()) { <span class="muted small">Primero elige una historia.</span> }
+      </div>
+    </section>
+  </form>
+</div>

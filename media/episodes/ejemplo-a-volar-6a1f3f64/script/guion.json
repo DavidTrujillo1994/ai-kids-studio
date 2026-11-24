@@ -1,0 +1,89 @@
+{
+  "ambience" : "dia",
+  "characters" : [ {
+    "id" : "bruno",
+    "x" : 380
+  }, {
+    "id" : "luna",
+    "x" : -200
+  } ],
+  "steps" : [ {
+    "do" : "say",
+    "character" : "bruno",
+    "text" : "¡Cómo me gustaría volar como los pájaros!",
+    "animation" : "think",
+    "expression" : "normal"
+  }, {
+    "do" : "prop",
+    "prop" : "pajaro",
+    "path" : [ [ 0.0, 1500.0, 180.0 ], [ 2.0, 950.0, 260.0 ], [ 4.0, 450.0, 200.0 ], [ 6.0, -150.0, 120.0 ] ]
+  }, {
+    "do" : "walk",
+    "character" : "luna",
+    "to" : 840,
+    "gait" : "run",
+    "expression" : "happy"
+  }, {
+    "do" : "say",
+    "character" : "luna",
+    "text" : "¡Cierra los ojos y usa tu imaginación!",
+    "animation" : "celebrate",
+    "expression" : "happy"
+  }, {
+    "do" : "play",
+    "character" : "bruno",
+    "animation" : "jump",
+    "expression" : "happy"
+  }, {
+    "do" : "scene",
+    "environment" : "cielo",
+    "ambience" : "dia",
+    "positions" : {
+      "bruno" : -200,
+      "luna" : -420
+    }
+  }, {
+    "do" : "walk",
+    "character" : "bruno",
+    "to" : 560,
+    "gait" : "fly",
+    "expression" : "happy"
+  }, {
+    "do" : "say",
+    "character" : "bruno",
+    "text" : "¡Yupi! ¡Estoy volando! ¡Mira las nubes!",
+    "animation" : "fly",
+    "expression" : "happy"
+  }, {
+    "do" : "walk",
+    "character" : "luna",
+    "to" : 260,
+    "gait" : "fly",
+    "expression" : "happy"
+  }, {
+    "do" : "walk",
+    "character" : "bruno",
+    "to" : 1550,
+    "gait" : "fly",
+    "expression" : "happy"
+  }, {
+    "do" : "scene",
+    "environment" : "parque",
+    "ambience" : "atardecer",
+    "positions" : {
+      "bruno" : 470,
+      "luna" : 830
+    }
+  }, {
+    "do" : "say",
+    "character" : "bruno",
+    "text" : "Con imaginación podemos llegar muy lejos.",
+    "animation" : "hug",
+    "expression" : "happy"
+  } ],
+  "id" : "ejemplo-a-volar-6a1f3f64",
+  "title" : "Ejemplo: ¡A volar!",
+  "environment" : "parque",
+  "fps" : 24,
+  "resolution" : [ 1280, 720 ]
+}

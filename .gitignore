@@ -1,0 +1,24 @@
+# Herramientas, modelos y datos locales
+.venv/
+tools/
+pruebas/
+data/
+
+# Compilados
+**/.godot/
+**/__pycache__/
+**/node_modules/
+**/dist/
+**/.angular/
+**/build/
+**/.gradle/
+
+# Episodios: solo se conserva el guion; lo demás se vuelve a producir
+media/episodes/*/*
+!media/episodes/*/script/
+media/exports/
+
+# Secretos
+.env
+*.pem
+*.key
