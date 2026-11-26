@@ -1,0 +1,81 @@
+{
+  "ambience" : "dia",
+  "characters" : [ {
+    "id" : "nico",
+    "x" : 360
+  }, {
+    "id" : "tito",
+    "x" : 860
+  } ],
+  "steps" : [ {
+    "do" : "say",
+    "character" : "nico",
+    "text" : "¡Juguemos a las escondidas! Yo cuento.",
+    "animation" : "celebrate",
+    "expression" : "happy"
+  }, {
+    "do" : "say",
+    "character" : "tito",
+    "text" : "¡Nunca me vas a encontrar!",
+    "animation" : "laugh",
+    "expression" : "picaro"
+  }, {
+    "do" : "walk",
+    "character" : "tito",
+    "to" : 1550,
+    "gait" : "sneak",
+    "expression" : "picaro"
+  }, {
+    "do" : "say",
+    "character" : "nico",
+    "text" : "Uno, dos, tres... ¡Allá voy!",
+    "animation" : "shy",
+    "expression" : "sleepy"
+  }, {
+    "do" : "walk",
+    "character" : "nico",
+    "to" : 900,
+    "gait" : "run",
+    "expression" : "normal"
+  }, {
+    "do" : "wait",
+    "character" : "nico",
+    "seconds" : 1.8,
+    "animation" : "look",
+    "expression" : "normal"
+  }, {
+    "do" : "say",
+    "character" : "nico",
+    "text" : "¿Dónde estará? No está por ningún lado.",
+    "animation" : "shrug",
+    "expression" : "normal"
+  }, {
+    "do" : "walk",
+    "character" : "tito",
+    "to" : 1200,
+    "gait" : "hop",
+    "expression" : "happy"
+  }, {
+    "do" : "say",
+    "character" : "tito",
+    "text" : "¡Bu! ¡Aquí estoy!",
+    "animation" : "surprise",
+    "expression" : "happy"
+  }, {
+    "do" : "play",
+    "character" : "nico",
+    "animation" : "surprise",
+    "expression" : "scared"
+  }, {
+    "do" : "say",
+    "character" : "nico",
+    "text" : "¡Ja, ja, ja! ¡Qué buen susto!",
+    "animation" : "laugh",
+    "expression" : "happy"
+  } ],
+  "id" : "ejemplo-las-escondidas-b5342ad1",
+  "title" : "Ejemplo: Las escondidas",
+  "environment" : "bosque-central",
+  "fps" : 24,
+  "resolution" : [ 1280, 720 ]
+}

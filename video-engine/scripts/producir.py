@@ -11,6 +11,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,7 @@ MEDIA = ROOT / "media"
 WINGET = Path(os.environ["LOCALAPPDATA"]) / "Microsoft/WinGet/Packages"
 PAUSE = 0.25
 TAKES = 3
+GOOD, ENOUGH = 0.93, 0.75  # parecido con el guion: aceptar ya / aceptar si no hubo una toma mejor
 EVENTS = "--eventos" in sys.argv
 
 
@@ -107,61 +109,116 @@ def piper(text, profile, raw):
     run(cmd, env={**os.environ, "PYTHONUTF8": "1"})
 
 
+UNITS = ("cero uno dos tres cuatro cinco seis siete ocho nueve diez once doce trece catorce quince dieciséis diecisiete dieciocho "
+         "diecinueve veinte veintiuno veintidós veintitrés veinticuatro veinticinco veintiséis veintisiete veintiocho veintinueve").split()
+TENS = dict(zip(range(3, 10), "treinta cuarenta cincuenta sesenta setenta ochenta noventa".split()))
+HUNDREDS = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"]
+
+
+def words(n):
+    """Un número de 0 a 999 en palabras."""
+    if n < 30:
+        return UNITS[n]
+    if n < 100:
+        return TENS[n // 10] + (f" y {UNITS[n % 10]}" if n % 10 else "")
+    if n == 100:
+        return "cien"
+    return HUNDREDS[n // 100] + (f" {words(n % 100)}" if n % 100 else "")
+
+
 def plain(text):
+    """Solo letras, para comparar. El verificador escribe «1, 2, 3» aunque oiga «uno, dos, tres»."""
+    text = re.sub(r"\d+", lambda m: words(int(m[0])) if len(m[0]) < 4 else m[0], text)
     text = unicodedata.normalize("NFKD", text.lower())
     return "".join(c for c in text if c.isalpha() and not unicodedata.combining(c))
 
 
-def heard(wav):
-    """Transcribe el audio: sirve para rechazar tomas que no dicen lo que pide el guion."""
-    global _whisper
-    if _whisper is None:
-        from faster_whisper import WhisperModel
-        _whisper = WhisperModel("small", device="cpu", compute_type="int8", download_root=str(ROOT / "tools/whisper"))
-    pcm = subprocess.run([FFMPEG, "-v", "error", "-i", str(wav), "-f", "f32le", "-ac", "1", "-ar", "16000", "-"], capture_output=True, check=True).stdout
-    segments, _ = _whisper.transcribe(np.frombuffer(pcm, np.float32), language="es", condition_on_previous_text=False)
-    return " ".join(s.text.strip() for s in segments)
+def heard(wavs):
+    """Transcribe audios: sirve para rechazar tomas que no dicen lo que pide el guion."""
+    from faster_whisper import WhisperModel
+    whisper = WhisperModel("small", device="cpu", compute_type="int8", cpu_threads=4, download_root=str(ROOT / "tools/whisper"))
+    texts = []
+    for wav in wavs:
+        pcm = subprocess.run([FFMPEG, "-v", "error", "-i", str(wav), "-f", "f32le", "-ac", "1", "-ar", "16000", "-"], capture_output=True, check=True).stdout
+        segments, _ = whisper.transcribe(np.frombuffer(pcm, np.float32), language="es", beam_size=1, condition_on_previous_text=False)
+        texts.append(" ".join(s.text.strip() for s in segments))
+    return texts
 
 
-def chatterbox(text, profile, raw, base):
-    import voz_expresiva
-    ref = str(base / profile["reference"])
-    if ref not in _voices:
-        _voices[ref] = voz_expresiva.Voice(ref, FFMPEG)
-    best = (0.0, None, "")
+class Line:
+    """Una frase de un personaje y los archivos que le corresponden."""
+
+    def __init__(self, ep, who, text, profile):
+        self.who, self.text, self.profile = who, text, profile
+        # el nombre sale del contenido: mover o insertar frases no obliga a regenerar las demás
+        digest = hashlib.sha256(json.dumps([who, text, profile], sort_keys=True).encode()).hexdigest()[:16]
+        self.wav = ep / f"audio/voz-{digest}.wav"
+        self.raw = self.wav.with_suffix(".raw.wav")
+        self.cues = self.wav.with_suffix(".labios.json")
+        self.stamp = self.wav.with_suffix(".key")
+        self.key = json.dumps([text, profile], sort_keys=True)
+        self.best = (0.0, None)
+
+    def ready(self):
+        return all(f.exists() for f in (self.wav, self.cues, self.stamp)) and self.stamp.read_text(encoding="utf-8") == self.key
+
+    def finish(self):
+        run([FFMPEG, "-v", "error", "-y", "-i", self.raw, "-af",
+             f"rubberband=pitch={self.profile['pitch']}:formant=shifted,loudnorm=I=-18:TP=-2", "-ar", 48000, self.wav])
+        run([RHUBARB, "-q", "-r", "phonetic", "-f", "json", "-o", self.cues, self.raw])
+        self.stamp.write_text(self.key, encoding="utf-8")
+
+
+def expressive(lines):
+    """Genera todas las frases por etapas, con un solo modelo en memoria, y repite las que no se entiendan."""
+    import voz_expresiva as ve
+    pending = list(lines)
     for take in range(TAKES):
-        x = _voices[ref].say(text, profile["seed"] + take, exaggeration=profile["exaggeration"], cfg=profile["cfg"])
-        voz_expresiva.write_wav(raw, x)
-        said = heard(raw)
-        score = difflib.SequenceMatcher(None, plain(text), plain(said)).ratio()
-        print(f"    toma {take + 1}: {score:.0%} «{said}»", flush=True)
-        if score > best[0]:
-            best = (score, x, said)
-        if score >= 0.93:
-            break
-    if best[0] < 0.75:
-        stop(f"No logré una voz clara para «{text}». Prueba a cambiar la frase.")
-    voz_expresiva.write_wav(raw, best[1])
+        voices = {ln.who: ve.Voice(MEDIA / "characters" / ln.who / ln.profile["reference"], FFMPEG) for ln in pending}
+        acted = []
+        for i, ln in enumerate(pending):
+            event("VOICES", 2 + round(10 * i / len(pending)), f"Actuando la frase {i + 1} de {len(pending)}: «{ln.text}»")
+            acted.append(voices[ln.who].tokens(ln.text, ln.profile["seed"] + take, exaggeration=ln.profile["exaggeration"], cfg=ln.profile["cfg"]))
+        ve.release()
+        takes = []
+        for i, (ln, tokens) in enumerate(zip(pending, acted)):
+            event("VOICES", 12 + round(42 * i / len(pending)), f"Voz {i + 1} de {len(pending)}: «{ln.text}»")
+            takes.append(voices[ln.who].sound(tokens))
+            ve.write_wav(ln.raw, takes[-1])
+        ve.release()
+        event("VOICES", 55, "Comprobando que se entienda")
+        for ln, x, said in zip(pending, takes, heard([ln.raw for ln in pending])):
+            score = difflib.SequenceMatcher(None, plain(ln.text), plain(said)).ratio()
+            print(f"    toma {take + 1}: {score:.0%} «{said}»", flush=True)
+            if score > ln.best[0]:
+                ln.best = (score, x)
+            if ln.best[0] >= GOOD or take == TAKES - 1 and ln.best[0] >= ENOUGH:
+                ve.write_wav(ln.raw, ln.best[1])
+                ln.finish()  # lo bueno se guarda ya: si otra frase falla, no se pierde
+        pending = [ln for ln in pending if not ln.ready()]
+        if not pending:
+            return
+    stop(f"No logré una voz clara para «{pending[0].text}». Prueba a cambiar la frase: las demás ya quedaron guardadas.")
 
 
-_whisper, _voices = None, {}
+def simple(lines):
+    for ln in lines:
+        piper(ln.text, ln.profile, ln.raw)
+        ln.finish()
 
 
-def voice(text, profile, out, base):
-    """Genera voz y labios. Si el texto y el perfil no cambiaron, reutiliza lo ya producido."""
-    raw, cues, stamp_file = out.with_suffix(".raw.wav"), out.with_suffix(".labios.json"), out.with_suffix(".key")
-    key = json.dumps([text, profile], sort_keys=True)
-    if not (out.exists() and cues.exists() and stamp_file.exists() and stamp_file.read_text(encoding="utf-8") == key):
-        stamp_file.unlink(missing_ok=True)
-        if profile["engine"] == "chatterbox":
-            chatterbox(text, profile, raw, base)
-        else:
-            piper(text, profile, raw)
-        run([FFMPEG, "-v", "error", "-y", "-i", raw, "-af",
-             f"rubberband=pitch={profile['pitch']}:formant=shifted,loudnorm=I=-18:TP=-2", "-ar", 48000, out])
-        run([RHUBARB, "-q", "-r", "phonetic", "-f", "json", "-o", cues, raw])
-        stamp_file.write_text(key, encoding="utf-8")
-    return duration(out), json.loads(cues.read_text(encoding="utf-8"))["mouthCues"]
+ENGINES = {"chatterbox": expressive, "piper": simple}
+
+
+def make_voices(lines):
+    """Reúne las frases que faltan y las genera con el motor de cada personaje."""
+    todo = list({ln.wav: ln for ln in lines if not ln.ready()}.values())
+    for ln in todo:
+        ln.stamp.unlink(missing_ok=True)
+    for engine in sorted({ln.profile["engine"] for ln in todo}):
+        if engine not in ENGINES:
+            stop(f"Motor de voz desconocido: {engine}")
+        ENGINES[engine]([ln for ln in todo if ln.profile["engine"] == engine])
 
 
 class Director:
@@ -186,7 +243,6 @@ class Director:
         self.t, self.events, self.moves, self.dialogues, self.props = 0.0, [], [], [], []
         self.scenes = [{"t": 0.0, "environment": script["environment"], "ambience": script.get("ambience", "dia"), "positions": dict(self.pos)}]
         self.camera = [{"t": 0.0, "x": 0.0, "zoom": 1.0}]
-        self.lines = sum(s["do"] == "say" for s in script["steps"])
         for who, side in self.facing.items():
             self.act(who, facing=side)
 
@@ -212,7 +268,11 @@ class Director:
     def on_stage(self, but=None):
         return [w for w, x in self.pos.items() if w != but and -40 <= x <= 1320]
 
+    def line(self, s):
+        return Line(self.ep, s["character"], s["text"], {**self.sheets[s["character"]]["voice"], **s.get("voice", {})})
+
     def run(self):
+        make_voices([self.line(s) for s in self.script["steps"] if s["do"] == "say" and s["character"] in self.sheets])
         for s in self.script["steps"]:
             who = s.get("character")
             if who is not None and who not in self.sheets:
@@ -262,15 +322,9 @@ class Director:
         lift = self.anims[animation].get("lift", 0)
         self.act(who, animation=animation, expression=s.get("expression", "normal"), lift=lift)
         self.t += 0.15
-        profile = {**self.sheets[who]["voice"], **s.get("voice", {})}
-        # el nombre sale del contenido: mover o insertar frases no obliga a regenerar las demás
-        digest = hashlib.sha256(json.dumps([who, s["text"], profile], sort_keys=True).encode()).hexdigest()[:16]
-        wav = self.ep / f"audio/voz-{digest}.wav"
-        print(f"  voz {wav.name}: {s['text']}", flush=True)
-        done = len(self.dialogues)
-        event("VOICES", round(2 + 58 * done / self.lines), f"Voz {done + 1} de {self.lines}: «{s['text']}»")
-        d, cues = voice(s["text"], profile, wav, MEDIA / "characters" / who)
-        self.dialogues.append({"character": who, "text": s["text"], "audio": wav.name, "start": self.t, "end": self.t + d, "cues": cues})
+        line = self.line(s)
+        d, cues = duration(line.wav), json.loads(line.cues.read_text(encoding="utf-8"))["mouthCues"]
+        self.dialogues.append({"character": who, "text": s["text"], "audio": line.wav.name, "start": self.t, "end": self.t + d, "cues": cues})
         self.t += d + PAUSE
         self.rest(who)
 

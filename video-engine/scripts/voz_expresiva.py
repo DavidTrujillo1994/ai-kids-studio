@@ -3,6 +3,7 @@
 El timbre sale de un WAV de referencia y la actuación de `exaggeration`.
 """
 import gc
+import hashlib
 import subprocess
 import unicodedata
 import wave
@@ -12,7 +13,11 @@ import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
 
-DIR = Path(__file__).resolve().parents[2] / "tools/chatterbox"
+ROOT = Path(__file__).resolve().parents[2]
+DIR = ROOT / "tools/chatterbox"
+TIMBRES = ROOT / "data/timbres"
+THREADS = 4  # medido en un i3-1215U: 4 hilos tardan 44 s donde 6 tardan 72 s
+REFERENCE_SECONDS = 4  # medido: con 10 s la etapa de sonido tarda el doble y no se entiende mejor
 SR = 24000
 START, STOP = 6561, 6562
 LAYERS, HEADS, HEAD_DIM = 30, 16, 64
@@ -21,7 +26,7 @@ LAYERS, HEADS, HEAD_DIM = 30, 16, 64
 def session(name):
     opt = ort.SessionOptions()
     opt.log_severity_level = 3
-    opt.enable_cpu_mem_arena = False  # devuelve la memoria entre frases
+    opt.intra_op_num_threads = THREADS
     return ort.InferenceSession(str(DIR / f"onnx/{name}.onnx"), opt, providers=["CPUExecutionProvider"])
 
 
@@ -39,25 +44,36 @@ def write_wav(path, x, sr=SR):
         f.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
 
 
-_shared = {}
+_loaded = {}
 
 
-def shared(name):
-    """Los modelos se cargan una sola vez aunque hablen varios personajes: cada copia ocupa más de 1 GB."""
-    if name not in _shared:
-        _shared[name] = session(name)
-    return _shared[name]
+def model(name):
+    """Deja en memoria solo lo que se está usando: cada modelo ocupa entre 0,4 y 0,8 GB."""
+    if name not in _loaded:
+        _loaded[name] = session(name)
+    return _loaded[name]
+
+
+def release():
+    _loaded.clear()
+    gc.collect()
 
 
 class Voice:
-    """Un personaje: solo guarda su timbre. Los modelos son compartidos."""
+    """El timbre de un personaje. Se calcula una vez por referencia y queda guardado."""
 
     def __init__(self, reference, ffmpeg):
-        audio = read_wav(reference, ffmpeg)[None, :]
-        enc = session("speech_encoder")
-        self.cond, self.prompt_token, self.xvector, self.prompt_feat = enc.run(None, {"audio_values": audio})
-        del enc
-        gc.collect()
+        key = hashlib.sha256(Path(reference).read_bytes() + str(REFERENCE_SECONDS).encode()).hexdigest()[:20]
+        cached = TIMBRES / f"{key}.npz"
+        if not cached.exists():
+            audio = read_wav(reference, ffmpeg)[None, :REFERENCE_SECONDS * SR]
+            release()
+            cond, token, xvector, feat = session("speech_encoder").run(None, {"audio_values": audio})
+            gc.collect()
+            TIMBRES.mkdir(parents=True, exist_ok=True)
+            np.savez(cached, cond=cond, token=token, xvector=xvector, feat=feat)
+        data = np.load(cached)
+        self.cond, self.prompt_token, self.xvector, self.prompt_feat = (data[k] for k in ("cond", "token", "xvector", "feat"))
         self.tok = Tokenizer.from_file(str(DIR / "tokenizer.json"))
 
     def tokens(self, text, seed, exaggeration=0.7, temperature=0.8, min_p=0.05, penalty=1.2, cfg=0.4, limit=400):
@@ -65,7 +81,7 @@ class Voice:
         ids = np.array([self.tok.encode("[es]" + unicodedata.normalize("NFKD", text.lower())).ids], dtype=np.int64)
         pos = np.where(ids >= START, 0, np.arange(ids.shape[1])[None, :] - 1).astype(np.int64)
         ex = np.array([exaggeration], dtype=np.float32)
-        emb = shared("embed_tokens").run(None, {"input_ids": ids, "position_ids": pos, "exaggeration": ex})[0]
+        emb = model("embed_tokens").run(None, {"input_ids": ids, "position_ids": pos, "exaggeration": ex})[0]
         # guía sin clasificador: la segunda fila es la misma condición sin el texto
         blank = emb.copy()
         blank[:, ids[0] < START] = 0
@@ -75,7 +91,7 @@ class Voice:
         mask = np.ones((b, x.shape[1]), np.int64)
         out = []
         for i in range(limit):
-            logits, *present = shared("language_model_q4").run(None, {"inputs_embeds": x, "attention_mask": mask, **past})
+            logits, *present = model("language_model_q4").run(None, {"inputs_embeds": x, "attention_mask": mask, **past})
             lg = logits[:, -1, :]
             lg = lg[0] + cfg * (lg[0] - lg[1]) if cfg else lg[0]
             lg = lg.astype(np.float64)
@@ -90,15 +106,13 @@ class Voice:
             if t == STOP:
                 break
             out.append(t)
-            step = shared("embed_tokens").run(None, {"input_ids": np.array([[t]], np.int64), "position_ids": np.array([[i + 1]], np.int64), "exaggeration": ex})[0]
+            step = model("embed_tokens").run(None, {"input_ids": np.array([[t]], np.int64), "position_ids": np.array([[i + 1]], np.int64), "exaggeration": ex})[0]
             x = np.repeat(step, b, 0)
             mask = np.concatenate([mask, np.ones((b, 1), np.int64)], 1)
             past = dict(zip(past, present))
         return out
 
-    def say(self, text, seed, **kw):
-        t = self.tokens(text, seed, **kw)
-        t = [k for k in t if k < START]
-        speech = np.concatenate([self.prompt_token, np.array([t], np.int64)], 1)
-        wav = shared("conditional_decoder").run(None, {"speech_tokens": speech, "speaker_embeddings": self.xvector, "speaker_features": self.prompt_feat})[0]
+    def sound(self, tokens):
+        speech = np.concatenate([self.prompt_token, np.array([[k for k in tokens if k < START]], np.int64)], 1)
+        wav = model("conditional_decoder").run(None, {"speech_tokens": speech, "speaker_embeddings": self.xvector, "speaker_features": self.prompt_feat})[0]
         return np.squeeze(wav)
